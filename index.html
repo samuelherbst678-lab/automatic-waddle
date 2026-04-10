@@ -11,7 +11,33 @@ body {
     background: #f4f4f4;
 }
 
-/* ===== KANDIDATEN ===== */
+/* ===== LEGENDE ===== */
+
+.legend {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: white;
+    border: 1px solid #aaa;
+    padding: 8px;
+    font-size: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    text-align: left;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin: 2px 0;
+}
+
+.legend-color {
+    width: 18px;
+    height: 14px;
+    margin-right: 6px;
+}
+
+/* ===== REST (unverändert) ===== */
 
 .container {
     display: flex;
@@ -83,8 +109,6 @@ body {
     cursor: pointer;
 }
 
-/* ===== MATRIX ===== */
-
 .topbar {
     margin-bottom: 10px;
 }
@@ -127,15 +151,18 @@ button {
 
 <body>
 
+<!-- ===== LEGENDE ===== -->
+<div class="legend" id="legend">
+    <b>Ausrichtungen</b>
+</div>
+
 <h2>Konklave</h2>
 
-<!-- ===== KANDIDATEN ===== -->
 <button onclick="addCard()">+ Kandidat</button>
 <div class="container" id="container"></div>
 
 <hr>
 
-<!-- ===== MATRIX ===== -->
 <div class="topbar">
     Wähler gesamt: 
     <input type="number" id="total" value="120" oninput="updateThreshold()">
@@ -159,7 +186,7 @@ button {
 
 <script>
 
-/* ===== AUSRICHTUNGEN (DEINE FARBEN) ===== */
+/* ===== AUSRICHTUNGEN ===== */
 
 const colors = {
     ERK: "#050069",
@@ -173,7 +200,37 @@ const colors = {
     SPR: "#B30C0C"
 };
 
-const types = ["ERK","TRA","KON","GKO","MOD","GLI","LIB","PRO","SPR"];
+const labels = {
+    ERK: "Erzkonservativ",
+    TRA: "Traditionell",
+    KON: "Konservativ",
+    GKO: "Gemäßigt konservativ",
+    MOD: "Moderat",
+    GLI: "Gemäßigt liberal",
+    LIB: "Liberal",
+    PRO: "Progressiv",
+    SPR: "Stark progressiv"
+};
+
+const types = Object.keys(colors);
+
+/* ===== LEGENDE ERSTELLEN ===== */
+
+function buildLegend() {
+    const legend = document.getElementById("legend");
+
+    types.forEach(t => {
+        const div = document.createElement("div");
+        div.className = "legend-item";
+
+        div.innerHTML = `
+            <div class="legend-color" style="background:${colors[t]}"></div>
+            <span>${t} – ${labels[t]}</span>
+        `;
+
+        legend.appendChild(div);
+    });
+}
 
 /* ===== KARTEN ===== */
 
@@ -185,9 +242,7 @@ function createCard() {
 
     div.innerHTML = `
         <button class="delete-btn" onclick="this.parentElement.remove()">X</button>
-
         <div class="img" onclick="uploadImage(this)"></div>
-
         <div class="name" onclick="editText(this)">Name</div>
 
         <div class="bar">
@@ -199,7 +254,6 @@ function createCard() {
             <span class="type" onclick="cycleType(this)" data-type="">---</span>
         </div>
     `;
-
     return div;
 }
 
@@ -222,7 +276,7 @@ function cycleType(el) {
 
     el.dataset.type = newType;
     el.innerText = newType;
-    el.style.background = colors[newType] || "#ccc";
+    el.style.background = colors[newType];
 }
 
 function uploadImage(div) {
@@ -231,12 +285,11 @@ function uploadImage(div) {
     input.accept = "image/*";
 
     input.onchange = e => {
-        const file = e.target.files[0];
         const reader = new FileReader();
         reader.onload = ev => {
             div.style.backgroundImage = `url(${ev.target.result})`;
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(e.target.files[0]);
     };
 
     input.click();
@@ -259,11 +312,10 @@ function addCandidate() {
     candidates++;
 
     const th = document.createElement("th");
-    th.innerHTML = `<input class="name" placeholder="Name">`;
+    th.innerHTML = `<input placeholder="Name">`;
     document.getElementById("header").appendChild(th);
 
-    const rows = document.querySelectorAll("#body tr");
-    rows.forEach(row => {
+    document.querySelectorAll("#body tr").forEach(row => {
         const td = document.createElement("td");
         td.innerHTML = `<input type="number" value="0" oninput="checkMajority()">`;
         row.appendChild(td);
@@ -289,27 +341,24 @@ function addRound() {
 }
 
 function checkMajority() {
-    const rows = document.querySelectorAll("#body tr");
-
-    rows.forEach(row => {
-        const inputs = row.querySelectorAll("td input");
-
-        inputs.forEach(i => {
+    document.querySelectorAll("#body tr").forEach(row => {
+        row.querySelectorAll("input").forEach(i => {
             i.classList.remove("gold");
-
-            if (Number(i.value) >= threshold && threshold > 0) {
+            if (Number(i.value) >= threshold) {
                 i.classList.add("gold");
             }
         });
 
-        const needSpan = row.querySelector(".need span");
-        if (needSpan) needSpan.innerText = threshold;
+        const need = row.querySelector(".need span");
+        if (need) need.innerText = threshold;
     });
 }
 
 /* ===== START ===== */
 
+buildLegend();
 updateThreshold();
+
 for (let i = 0; i < 5; i++) addCard();
 for (let i = 0; i < 3; i++) addCandidate();
 for (let i = 0; i < 3; i++) addRound();
