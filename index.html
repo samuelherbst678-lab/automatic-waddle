@@ -12,7 +12,6 @@ body {
 }
 
 /* ===== LEGENDE ===== */
-
 .legend {
     position: fixed;
     top: 10px;
@@ -25,20 +24,7 @@ body {
     text-align: left;
 }
 
-.legend-item {
-    display: flex;
-    align-items: center;
-    margin: 2px 0;
-}
-
-.legend-color {
-    width: 18px;
-    height: 14px;
-    margin-right: 6px;
-}
-
-/* ===== REST (unverändert) ===== */
-
+/* ===== KARTEN ===== */
 .container {
     display: flex;
     flex-wrap: wrap;
@@ -72,7 +58,6 @@ body {
 .bar {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     background: #eee;
     padding: 2px;
     font-size: 11px;
@@ -80,7 +65,6 @@ body {
 
 .left {
     display: flex;
-    align-items: center;
     gap: 3px;
 }
 
@@ -88,31 +72,28 @@ body {
     background: black;
     color: white;
     padding: 1px 4px;
-    font-size: 11px;
 }
 
 .type {
-    padding: 1px 4px;
     color: white;
-    font-size: 11px;
+    padding: 1px 4px;
     background: #ccc;
 }
 
 .delete-btn {
     position: absolute;
     top: 2px;
-    right: 4px;
+    right: 3px;
     background: red;
     color: white;
     border: none;
-    font-size: 11px;
+    font-size: 9px;
+    padding: 0 3px;
     cursor: pointer;
+    opacity: 0.7;
 }
 
-.topbar {
-    margin-bottom: 10px;
-}
-
+/* ===== MATRIX ===== */
 table {
     border-collapse: collapse;
     margin: auto;
@@ -122,26 +103,26 @@ table {
 th, td {
     border: 1px solid #aaa;
     padding: 6px;
-    min-width: 70px;
 }
 
 input {
     width: 60px;
     text-align: center;
     border: none;
-    font-size: 14px;
 }
 
 .gold {
     outline: 3px solid gold;
-    background: #fff8dc;
 }
 
-.need {
-    font-size: 11px;
-    color: #555;
+.small-x {
+    color: red;
+    font-size: 10px;
+    cursor: pointer;
+    margin-left: 4px;
 }
 
+/* Buttons */
 button {
     margin: 5px;
     padding: 6px 10px;
@@ -152,9 +133,7 @@ button {
 <body>
 
 <!-- ===== LEGENDE ===== -->
-<div class="legend" id="legend">
-    <b>Ausrichtungen</b>
-</div>
+<div class="legend" id="legend"><b>Ausrichtungen</b></div>
 
 <h2>Konklave</h2>
 
@@ -163,25 +142,22 @@ button {
 
 <hr>
 
-<div class="topbar">
-    Wähler gesamt: 
-    <input type="number" id="total" value="120" oninput="updateThreshold()">
-    
-    → 2/3 = 
-    <span id="thresholdDisplay">80</span> Stimmen
+<div>
+Wähler: <input id="total" type="number" value="120" oninput="updateThreshold()">
+→ 2/3 = <span id="thresholdDisplay">80</span>
 </div>
 
 <button onclick="addCandidate()">+ Kandidat (Matrix)</button>
 <button onclick="addRound()">+ Wahlgang</button>
 
 <table>
-    <thead>
-        <tr id="header">
-            <th>WG</th>
-            <th>Info</th>
-        </tr>
-    </thead>
-    <tbody id="body"></tbody>
+<thead>
+<tr id="header">
+<th>WG</th>
+<th>Info</th>
+</tr>
+</thead>
+<tbody id="body"></tbody>
 </table>
 
 <script>
@@ -189,179 +165,148 @@ button {
 /* ===== AUSRICHTUNGEN ===== */
 
 const colors = {
-    ERK: "#050069",
-    TRA: "#0500AD",
-    KON: "#0500FF",
-    GKO: "#008CFF",
-    MOD: "#FFD966",
-    GLI: "#FFA1A1",
-    LIB: "#FF7575",
-    PRO: "#FF0000",
-    SPR: "#B30C0C"
+    ERK:"#050069", TRA:"#0500AD", KON:"#0500FF",
+    GKO:"#008CFF", MOD:"#FFD966",
+    GLI:"#FFA1A1", LIB:"#FF7575",
+    PRO:"#FF0000", SPR:"#B30C0C"
 };
 
 const labels = {
-    ERK: "Erzkonservativ",
-    TRA: "Traditionell",
-    KON: "Konservativ",
-    GKO: "Gemäßigt konservativ",
-    MOD: "Moderat",
-    GLI: "Gemäßigt liberal",
-    LIB: "Liberal",
-    PRO: "Progressiv",
-    SPR: "Stark progressiv"
+    ERK:"Erzkonservativ",
+    TRA:"Traditionell",
+    KON:"Konservativ",
+    GKO:"Gemäßigt konservativ",
+    MOD:"Moderat",
+    GLI:"Gemäßigt liberal",
+    LIB:"Liberal",
+    PRO:"Progressiv",
+    SPR:"Stark progressiv"
 };
 
 const types = Object.keys(colors);
 
-/* ===== LEGENDE ERSTELLEN ===== */
+/* ===== LEGENDE ===== */
 
-function buildLegend() {
-    const legend = document.getElementById("legend");
-
-    types.forEach(t => {
-        const div = document.createElement("div");
-        div.className = "legend-item";
-
-        div.innerHTML = `
-            <div class="legend-color" style="background:${colors[t]}"></div>
-            <span>${t} – ${labels[t]}</span>
-        `;
-
-        legend.appendChild(div);
+function buildLegend(){
+    const l = document.getElementById("legend");
+    types.forEach(t=>{
+        const d = document.createElement("div");
+        d.innerHTML = `<span style="background:${colors[t]};display:inline-block;width:15px;height:10px;margin-right:5px"></span>${t} - ${labels[t]}`;
+        l.appendChild(d);
     });
 }
 
 /* ===== KARTEN ===== */
 
-const maxCards = 10;
-
-function createCard() {
+function addCard(){
     const div = document.createElement("div");
-    div.className = "card";
+    div.className="card";
 
-    div.innerHTML = `
-        <button class="delete-btn" onclick="this.parentElement.remove()">X</button>
-        <div class="img" onclick="uploadImage(this)"></div>
-        <div class="name" onclick="editText(this)">Name</div>
-
-        <div class="bar">
-            <div class="left">
-                <span onclick="editText(this)">🏳️</span>
-                <span class="badge" onclick="editText(this)">0</span>
-                <span class="badge" onclick="editText(this)">0</span>
-            </div>
-            <span class="type" onclick="cycleType(this)" data-type="">---</span>
+    div.innerHTML=`
+    <button class="delete-btn" onclick="this.parentElement.remove()">x</button>
+    <div class="img" onclick="uploadImage(this)"></div>
+    <div class="name" onclick="editText(this)">Name</div>
+    <div class="bar">
+        <div class="left">
+            <span onclick="editText(this)">🏳️</span>
+            <span class="badge" onclick="editText(this)">0</span>
+            <span class="badge" onclick="editText(this)">0</span>
         </div>
-    `;
-    return div;
+        <span class="type" onclick="cycleType(this)" data-type="">---</span>
+    </div>`;
+    document.getElementById("container").appendChild(div);
 }
 
-function addCard() {
-    const c = document.getElementById("container");
-    if (c.children.length < maxCards) c.appendChild(createCard());
+function editText(el){
+    const v=prompt("Wert:",el.innerText);
+    if(v!==null) el.innerText=v;
 }
 
-function editText(el) {
-    const val = prompt("Wert eingeben:", el.innerText);
-    if (val !== null) el.innerText = val;
+function cycleType(el){
+    let i = types.indexOf(el.dataset.type);
+    i = (i+1)%types.length;
+    const t = types[i];
+    el.dataset.type=t;
+    el.innerText=t;
+    el.style.background=colors[t];
 }
 
-function cycleType(el) {
-    let current = el.dataset.type || "";
-    let i = types.indexOf(current);
-
-    i = (i + 1) % types.length;
-    const newType = types[i];
-
-    el.dataset.type = newType;
-    el.innerText = newType;
-    el.style.background = colors[newType];
-}
-
-function uploadImage(div) {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-
-    input.onchange = e => {
-        const reader = new FileReader();
-        reader.onload = ev => {
-            div.style.backgroundImage = `url(${ev.target.result})`;
-        };
-        reader.readAsDataURL(e.target.files[0]);
+function uploadImage(div){
+    const input=document.createElement("input");
+    input.type="file";
+    input.onchange=e=>{
+        const r=new FileReader();
+        r.onload=ev=>div.style.backgroundImage=`url(${ev.target.result})`;
+        r.readAsDataURL(e.target.files[0]);
     };
-
     input.click();
 }
 
 /* ===== MATRIX ===== */
 
-let rounds = 0;
-let candidates = 0;
-let threshold = 80;
+let candidates=0, rounds=0, threshold=80;
 
-function updateThreshold() {
-    const total = Number(document.getElementById("total").value) || 0;
-    threshold = Math.ceil((2/3) * total);
-    document.getElementById("thresholdDisplay").innerText = threshold;
+function updateThreshold(){
+    const total=Number(document.getElementById("total").value)||0;
+    threshold=Math.ceil((2/3)*total);
+    document.getElementById("thresholdDisplay").innerText=threshold;
     checkMajority();
 }
 
-function addCandidate() {
-    candidates++;
+function addCandidate(){
+    const idx=candidates++;
+    const th=document.createElement("th");
 
-    const th = document.createElement("th");
-    th.innerHTML = `<input placeholder="Name">`;
+    th.innerHTML=`<input placeholder="Name">
+    <span class="small-x" onclick="removeCandidate(${idx})">✖</span>`;
+
     document.getElementById("header").appendChild(th);
 
-    document.querySelectorAll("#body tr").forEach(row => {
-        const td = document.createElement("td");
-        td.innerHTML = `<input type="number" value="0" oninput="checkMajority()">`;
-        row.appendChild(td);
+    document.querySelectorAll("#body tr").forEach(r=>{
+        const td=document.createElement("td");
+        td.innerHTML=`<input type="number" value="0" oninput="checkMajority()">`;
+        r.appendChild(td);
     });
 }
 
-function addRound() {
+function removeCandidate(index){
+    document.getElementById("header").children[index+2].remove();
+    document.querySelectorAll("#body tr").forEach(r=>r.children[index+2].remove());
+    candidates--;
+}
+
+function addRound(){
     rounds++;
+    const tr=document.createElement("tr");
 
-    const tr = document.createElement("tr");
+    let row=`<td>WG ${rounds}
+    <span class="small-x" onclick="this.closest('tr').remove()">✖</span></td>
+    <td>benötigt: ${threshold}</td>`;
 
-    let row = `
-        <td><b>WG ${rounds}</b></td>
-        <td class="need">benötigt: <span>${threshold}</span></td>
-    `;
-
-    for (let i = 0; i < candidates; i++) {
-        row += `<td><input type="number" value="0" oninput="checkMajority()"></td>`;
+    for(let i=0;i<candidates;i++){
+        row+=`<td><input type="number" value="0" oninput="checkMajority()"></td>`;
     }
 
-    tr.innerHTML = row;
+    tr.innerHTML=row;
     document.getElementById("body").appendChild(tr);
 }
 
-function checkMajority() {
-    document.querySelectorAll("#body tr").forEach(row => {
-        row.querySelectorAll("input").forEach(i => {
+function checkMajority(){
+    document.querySelectorAll("#body tr").forEach(r=>{
+        r.querySelectorAll("input").forEach(i=>{
             i.classList.remove("gold");
-            if (Number(i.value) >= threshold) {
-                i.classList.add("gold");
-            }
+            if(Number(i.value)>=threshold) i.classList.add("gold");
         });
-
-        const need = row.querySelector(".need span");
-        if (need) need.innerText = threshold;
     });
 }
 
-/* ===== START ===== */
-
+/* START */
 buildLegend();
 updateThreshold();
 
-for (let i = 0; i < 5; i++) addCard();
-for (let i = 0; i < 3; i++) addCandidate();
-for (let i = 0; i < 3; i++) addRound();
+for(let i=0;i<5;i++) addCard();
+for(let i=0;i<3;i++) addCandidate();
+for(let i=0;i<3;i++) addRound();
 
 </script>
 
